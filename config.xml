@@ -23,6 +23,12 @@
             <uses-feature android:name="android.hardware.location.gps" />
         </config-file>
     </platform>
+     <platform name="ios" />
+    <plugin name="cordova-plugin-whitelist" spec="*" />
+    <plugin name="cordova-plugin-request-location-accuracy" spec="*" />
+    <plugin name="cordova.plugins.diagnostic" spec="*" />
+    <engine name="ios" spec="latest" />
+    <engine name="android" spec="latest" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
