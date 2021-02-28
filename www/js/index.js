@@ -27,24 +27,86 @@ function onDeviceReady() {
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
     document.getElementById('deviceready').classList.add('ready');
     alert("4");
-    options = { enableHighAccuracy: true };
-    navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
+    var platform;
+function onDeviceReady(){
+    platform = cordova.platformId;
 }
 
-function onSuccess(position) {
-    alert("1");
-    alert('Latitude: '          + position.coords.latitude          + '\n' +
-    'Longitude: '         + position.coords.longitude         + '\n' +
-    'Altitude: '          + position.coords.altitude          + '\n' +
-    'Accuracy: '          + position.coords.accuracy          + '\n' +
-    'Altitude Accuracy: ' + position.coords.altitudeAccuracy  + '\n' +
-    'Heading: '           + position.coords.heading           + '\n' +
-    'Speed: '             + position.coords.speed             + '\n' +
-    'Timestamp: '         + new Date(position.timestamp)      + '\n');
-}
 
 function onError(error) {
-    alert("3");
-    alert('code: '    + error.code    + '\n' +
-    'message: ' + error.message + '\n');
+    console.error("The following error occurred: " + error);
 }
+
+function handleLocationAuthorizationStatus(status) {
+    switch (status) {
+        case cordova.plugins.diagnostic.permissionStatus.GRANTED:
+            if(platform === "ios"){
+                onError("Location services is already switched ON");
+            }else{
+                _makeRequest();
+            }
+            break;
+        case cordova.plugins.diagnostic.permissionStatus.NOT_REQUESTED:
+            requestLocationAuthorization();
+            break;
+        case cordova.plugins.diagnostic.permissionStatus.DENIED:
+            if(platform === "android"){
+                onError("User denied permission to use location");
+            }else{
+                _makeRequest();
+            }
+            break;
+        case cordova.plugins.diagnostic.permissionStatus.DENIED_ALWAYS:
+            // Android only
+            onError("User denied permission to use location");
+            break;
+        case cordova.plugins.diagnostic.permissionStatus.GRANTED_WHEN_IN_USE:
+            // iOS only
+            onError("Location services is already switched ON");
+            break;
+    }
+}
+
+function requestLocationAuthorization() {
+    cordova.plugins.diagnostic.requestLocationAuthorization(handleLocationAuthorizationStatus, onError);
+}
+
+function requestLocationAccuracy() {
+    cordova.plugins.diagnostic.getLocationAuthorizationStatus(handleLocationAuthorizationStatus, onError);
+}
+
+function _makeRequest(){
+    cordova.plugins.locationAccuracy.canRequest(function(canRequest){
+        if (canRequest) {
+            cordova.plugins.locationAccuracy.request(function () {
+                    handleSuccess("Location accuracy request successful");
+                }, function (error) {
+                    onError("Error requesting location accuracy: " + JSON.stringify(error));
+                    if (error) {
+                        // Android only
+                        onError("error code=" + error.code + "; error message=" + error.message);
+                        if (platform === "android" && error.code !== cordova.plugins.locationAccuracy.ERROR_USER_DISAGREED) {
+                            if (window.confirm("Failed to automatically set Location Mode to 'High Accuracy'. Would you like to switch to the Location Settings page and do this manually?")) {
+                                cordova.plugins.diagnostic.switchToLocationSettings();
+                            }
+                        }
+                    }
+                }, cordova.plugins.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY // iOS will ignore this
+            );
+        } else {
+            // On iOS, this will occur if Location Services is currently on OR a request is currently in progress.
+            // On Android, this will occur if the app doesn't have authorization to use location.
+            onError("Cannot request location accuracy");
+        }
+    });
+}
+
+// Make the request
+requestLocationAccuracy();
+
+    
+}
+
+
+
+

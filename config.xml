@@ -15,6 +15,7 @@
 
 
 </gap:config-file>
+<plugin name="cordova-plugin-request-location-accuracy" source="npm" />
 
 
     <access origin="*" />
