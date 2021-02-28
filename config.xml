@@ -15,6 +15,8 @@
 
 
 </gap:config-file>
+ <preference name="android-build-tool" value="gradle" />
+ <preference name="phonegap-version" value="cli-8.0.0" />
 <plugin name="cordova-plugin-request-location-accuracy" source="npm" />
 
 
